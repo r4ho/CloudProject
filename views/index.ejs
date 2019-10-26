@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ABC</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+      <p>Images</p>
+      <a href="/showcreate">Create</a>
+      <br>
+      <a href="/showdelete">Delete</a>
+      <br>
+      <a href="/chooseupdate">Update</a>
+      <br>
+      <% for(var i = 0; i < data.length; i++) {%>
+      <img src=<%=data[i]%>>
+      <a href=<%=data[i]%>> Download</a>
+      <br>
+      <% } %>
+  </body>
+</html>
