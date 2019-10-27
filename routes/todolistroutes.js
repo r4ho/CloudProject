@@ -9,8 +9,8 @@ var express = require('express')
 var multer = require('multer')
 var multerS3 = require('multer-s3')
 var s3bucket = new aws.S3({ 
-  accessKeyId: '',
-  secretAccessKey: '',
+  accessKeyId: 'AKIA6G5SFHWXNGMW4APM',
+  secretAccessKey: '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',
   Bucket: 'raymondho.net'
 })
 var upload = multer({
@@ -43,10 +43,14 @@ var upload = multer({
 
   app.route("/showregister")
   .get(todoList.showregister);
+  app.route("/showlogin")
+  .get(todoList.showlogin);
 
 
   app.route("/register")
   .post(todoList.register);
+  app.route("/login")
+  .post(todoList.login);
 
   app.route('/getImages')
     .get(todoList.getImages);

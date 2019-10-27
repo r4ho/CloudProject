@@ -8,14 +8,16 @@ var mongoose = require('mongoose'),
   ExpenseImage = mongoose.model('ExpenseImage');
 
 var multiparty = require('multiparty');
+global.logged_in = "";
+global.log_user_name = "";
 
   var aws = require('aws-sdk')
 var express = require('express')
 var multer = require('multer')
 var multerS3 = require('multer-s3')
 var s3bucket = new aws.S3({ 
-  accessKeyId: '',
-  secretAccessKey: '',
+  accessKeyId: 'AKIA6G5SFHWXNGMW4APM',
+  secretAccessKey: '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',
   Bucket: 'raymondho.net'
 })
 
@@ -27,8 +29,8 @@ const jwt = require('jsonwebtoken');
 global.fetch = require('node-fetch');
 
 const poolData = {    
-    UserPoolId : "", // Your user pool id here    
-    ClientId : "" // Your client id here
+    UserPoolId : "us-west-2_jZ4pJevzH", // Your user pool id here    
+    ClientId : "5p2f3mg30g2gmefmsdh9k64mrs" // Your client id here
     }; 
     const pool_region = 'us-west-2';
 
@@ -49,11 +51,11 @@ var upload = multer({
 })
 
 var mysql = require('mysql');
-var connection = mysql.createConnection({
-host: '',
-user: '',
-password: '',
-port: '',
+/*var connection = mysql.createConnection({
+host: 'aas45fvulvy4im.ctk1dcrepiao.us-west-2.rds.amazonaws.com',
+user: 'admin',
+password: 'password',
+port: '3306',
 timeout: 60000
 });
 connection.connect(function(err) {
@@ -73,14 +75,16 @@ connection.connect(function(err) {
     console.log(rows);
   })
   console.log('Connected to database.');
-})
+})*/
 
 exports.checkuser = function(req, res) {
-  var data = { UserPoolId : '',
-  ClientId : ''
+  var data = { UserPoolId : 'us-west-2_jZ4pJevzH',
+  ClientId : '5p2f3mg30g2gmefmsdh9k64mrs'
 };
 var userPool = new AmazonCognitoIdentity.CognitoUserPool(data);
+console.log(userPool)
 var cognitoUser = userPool.getCurrentUser();
+console.log(cognitoUser);
 
 if (cognitoUser != null) {
   cognitoUser.getSession(function(err, session) {
@@ -114,8 +118,8 @@ exports.register = function (req, res) {
 }
 
 exports.login = function (body, callback) {
-  var userName = body.name;
-  var password = body.password;
+  var userName = body.body.email;
+  var password = body.body.password;
   var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
        Username: userName,
        Password: password
@@ -128,10 +132,13 @@ exports.login = function (body, callback) {
    cognitoUser.authenticateUser(authenticationDetails, {
        onSuccess: function (result) {
           var accesstoken = result.getAccessToken().getJwtToken();
-          callback(null, accesstoken);
+          logged_in = accesstoken;
+          log_user_name = result['idToken']['payload']['name']
+          callback.send("WELCOME USER : " + result['idToken']['payload']['name']);
        },
        onFailure: (function (err) {
-          callback(err);
+         logged_in = ""
+          callback.send(err)
       })
   })
 };
@@ -164,13 +171,17 @@ exports.updateImage = function(req, res) {
 }
 
 exports.showhome = async function(req,res) {
+  if(logged_in == "")  {
+    res.send("NOT LOGGED IN");
+    return;
+  }
   aws.config.setPromisesDependency();
    const image = await s3bucket.listObjectsV2({Bucket:'raymondho.net'}).promise();
    var array = [];
   for(var a = 0; a < image['Contents'].length; a++) {
-    array.push(""+image['Contents'][a]['Key']);
+    array.push("http://d2tmb4hokmhume.cloudfront.net/"+image['Contents'][a]['Key']);
   }
-    res.render('index',{data: array});
+    res.render('index',{data: array, user: log_user_name});
 }
 
 exports.showcreate = function(req,res) {
@@ -188,13 +199,16 @@ exports.showupdate = function(req, res) {
 exports.showregister = function(req, res) {
   res.render('registerpage')
 }
+exports.showlogin = function(req, res) {
+  res.render('loginpage')
+}
 
 exports.chooseupdate =  async function(req, res) {
   aws.config.setPromisesDependency();
    const image = await s3bucket.listObjectsV2({Bucket:'raymondho.net'}).promise();
    var array = [];
   for(var a = 0; a < image['Contents'].length; a++) {
-    array.push(""+image['Contents'][a]['Key']);
+    array.push("http://d2tmb4hokmhume.cloudfront.net/"+image['Contents'][a]['Key']);
   }
     res.render('chooseupdate',{data: array});
 }
@@ -208,7 +222,7 @@ exports.getImages = async function(req, res) {
    const image = await s3bucket.listObjectsV2({Bucket:'raymondho.net'}).promise();
    var array = [];
   for(var a = 0; a < image['Contents'].length; a++) {
-    array.push(""+image['Contents'][a]['Key']);
+    array.push("https://s3-us-west-1.amazonaws.com/raymondho.net/"+image['Contents'][a]['Key']);
   }
    res.json(array);
 };
