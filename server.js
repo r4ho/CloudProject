@@ -1,20 +1,14 @@
 var express = require('express'),
   app = express(),
-  port = process.env.PORT || 3000,
-  mongoose = require('mongoose'),
-  Expense = require('./models/todoListModel'), //created model loading here
+  port = process.env.PORT || 80,
   bodyParser = require('body-parser');
   
-// mongoose instance connection url connection
-mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/Tododb'); 
-
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
-var routes = require('./routes/todoListRoutes'); //importing route
+var routes = require('./routes/todolistroutes'); //importing route
 routes(app); //register the route
 
 

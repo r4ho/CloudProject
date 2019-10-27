@@ -1,6 +1,6 @@
 'use strict';
 module.exports = function(app) {
-  var todoList = require('../controllers/todoListController');
+  var todoList = require('../controllers/todolistcontroller');
   var bodyParser = require('body-parser');
   var methodOverride = require('method-override');
 
@@ -9,8 +9,8 @@ var express = require('express')
 var multer = require('multer')
 var multerS3 = require('multer-s3')
 var s3bucket = new aws.S3({ 
-  accessKeyId: '',
-  secretAccessKey: '',
+  accessKeyId: 'AKIA6G5SFHWXNGMW4APM',
+  secretAccessKey: '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', 
   Bucket: 'raymondho.net'
 })
 var upload = multer({

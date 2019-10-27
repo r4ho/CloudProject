@@ -2,20 +2,18 @@
 'use strict';
 
 
-var mongoose = require('mongoose'),
-  Expense = mongoose.model('Expenses'),
-  limit = mongoose.model('ExpenseLimit'),
-  ExpenseImage = mongoose.model('ExpenseImage');
 
 var multiparty = require('multiparty');
 
-  var aws = require('aws-sdk')
+var aws = require('aws-sdk');
+var config = require('../config/config.js');
+var isDev = process.env.NODE_ENV !== 'production';
 var express = require('express')
 var multer = require('multer')
 var multerS3 = require('multer-s3')
 var s3bucket = new aws.S3({ 
-  accessKeyId: '',
-  secretAccessKey: '',
+  accessKeyId: 'AKIA6G5SFHWXNGMW4APM',
+  secretAccessKey: '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',
   Bucket: 'raymondho.net'
 })
 
@@ -26,9 +24,8 @@ const jwkToPem = require('jwk-to-pem');
 const jwt = require('jsonwebtoken');
 global.fetch = require('node-fetch');
 
-const poolData = {    
-    UserPoolId : "", // Your user pool id here    
-    ClientId : "" // Your client id here
+const poolData = {  UserPoolId : "us-west-2_jZ4pJevzH",  
+    ClientId : "5p2f3mg30g2gmefmsdh9k64mrs" 
     }; 
     const pool_region = 'us-west-2';
 
@@ -49,11 +46,11 @@ var upload = multer({
 })
 
 var mysql = require('mysql');
-var connection = mysql.createConnection({
-host: '',
-user: '',
-password: '',
-port: '',
+/*var connection = mysql.createConnection({
+host: 'aas45fvulvy4im.ctk1dcrepiao.us-west-2.rds.amazonaws.com',
+user: 'admin',
+password: 'password',
+port: '3306',
 timeout: 60000
 });
 connection.connect(function(err) {
@@ -73,11 +70,43 @@ connection.connect(function(err) {
     console.log(rows);
   })
   console.log('Connected to database.');
-})
+})*/
+exports.getImageDB = function(req, res)  {
+    if (isDev) {
+      AWS.config.update(config.aws_local_config);
+    } else {
+      AWS.config.update(config.aws_remote_config);
+    }
+    const image = req.body.name;
+    const docClient = new AWS.DynamoDB.DocumentClient();
+    const params = {
+      TableName: config.aws_table_name,
+      KeyConditionExpression: 'filename = :i',
+      ExpressionAttributeValues: {
+        ':i': image
+      }
+    };
+    docClient.query(params, function(err, data) {
+      if (err) {
+        res.send({
+          success: false,
+          message: 'Error: Server error'
+        });
+      } else {
+        console.log('data', data);
+        const { Items } = data;
+        res.send({
+          success: true,
+          message: 'Loaded Image',
+          images: Items
+        });
+      }
+    });
+  };
 
 exports.checkuser = function(req, res) {
-  var data = { UserPoolId : '',
-  ClientId : ''
+    var data = { UserPoolId : 'us-east-1_Iqc12345',
+  ClientId : '12345du353sm7khjj1q'
 };
 var userPool = new AmazonCognitoIdentity.CognitoUserPool(data);
 var cognitoUser = userPool.getCurrentUser();
@@ -168,7 +197,7 @@ exports.showhome = async function(req,res) {
    const image = await s3bucket.listObjectsV2({Bucket:'raymondho.net'}).promise();
    var array = [];
   for(var a = 0; a < image['Contents'].length; a++) {
-    array.push(""+image['Contents'][a]['Key']);
+    array.push("http://d2tmb4hokmhume.cloudfront.net/"+image['Contents'][a]['Key']);
   }
     res.render('index',{data: array});
 }
@@ -194,7 +223,7 @@ exports.chooseupdate =  async function(req, res) {
    const image = await s3bucket.listObjectsV2({Bucket:'raymondho.net'}).promise();
    var array = [];
   for(var a = 0; a < image['Contents'].length; a++) {
-    array.push(""+image['Contents'][a]['Key']);
+    array.push("http://d2tmb4hokmhume.cloudfront.net/"+image['Contents'][a]['Key']);
   }
     res.render('chooseupdate',{data: array});
 }
@@ -208,7 +237,7 @@ exports.getImages = async function(req, res) {
    const image = await s3bucket.listObjectsV2({Bucket:'raymondho.net'}).promise();
    var array = [];
   for(var a = 0; a < image['Contents'].length; a++) {
-    array.push(""+image['Contents'][a]['Key']);
+    array.push("https://s3-us-west-1.amazonaws.com/raymondho.net/"+image['Contents'][a]['Key']);
   }
    res.json(array);
 };
