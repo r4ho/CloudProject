@@ -58,8 +58,6 @@ var upload = multer({
   app.route("/login")
   .post(todoList.login);
 
-  app.route('/getImages')
-    .get(todoList.getImages);
   app.route('/upload')
     .post(upload.single('file'), todoList.addImage);
   app.route('/delete')
