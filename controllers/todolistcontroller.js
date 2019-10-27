@@ -2,16 +2,14 @@
 'use strict';
 
 
-var mongoose = require('mongoose'),
-  Expense = mongoose.model('Expenses'),
-  limit = mongoose.model('ExpenseLimit'),
-  ExpenseImage = mongoose.model('ExpenseImage');
 
 var multiparty = require('multiparty');
 global.logged_in = "";
 global.log_user_name = "";
 
-  var aws = require('aws-sdk')
+var aws = require('aws-sdk');
+var config = require('../config/config.js');
+var isDev = process.env.NODE_ENV !== 'production';
 var express = require('express')
 var multer = require('multer')
 var multerS3 = require('multer-s3')
@@ -28,9 +26,9 @@ const jwkToPem = require('jwk-to-pem');
 const jwt = require('jsonwebtoken');
 global.fetch = require('node-fetch');
 
-const poolData = {    
-    UserPoolId : "us-west-2_jZ4pJevzH", // Your user pool id here    
-    ClientId : "5p2f3mg30g2gmefmsdh9k64mrs" // Your client id here
+
+const poolData = {  UserPoolId : "us-west-2_jZ4pJevzH",  
+    ClientId : "5p2f3mg30g2gmefmsdh9k64mrs" 
     }; 
     const pool_region = 'us-west-2';
 
@@ -77,12 +75,44 @@ connection.connect(function(err) {
   console.log('Connected to database.');
 })*/
 
+exports.getImageDB = function(req, res)  {
+  if(isDev) {
+      AWS.config.update(config.aws_local_config);
+    } else {
+      AWS.config.update(config.aws_remote_config);
+    }
+    const image = req.body.name;
+    const docClient = new AWS.DynamoDB.DocumentClient();
+    const params = {
+      TableName: config.aws_table_name,
+      KeyConditionExpression: 'filename = :i',
+      ExpressionAttributeValues: {
+        ':i': image
+      }
+    };
+    docClient.query(params, function(err, data) {
+      if (err) {
+        res.send({
+          success: false,
+          message: 'Error: Server error'
+        });
+      } else {
+        console.log('data', data);
+        const { Items } = data;
+        res.send({
+          success: true,
+          message: 'Loaded Image',
+          images: Items
+        });
+      }
+    });
+  };
+
 exports.checkuser = function(req, res) {
-  var data = { UserPoolId : 'us-west-2_jZ4pJevzH',
-  ClientId : '5p2f3mg30g2gmefmsdh9k64mrs'
+    var data = { UserPoolId : 'us-west-2_jZ4pJevzH',
+    ClientId : '5p2f3mg30g2gmefmsdh9k64mrs'
 };
 var userPool = new AmazonCognitoIdentity.CognitoUserPool(data);
-console.log(userPool)
 var cognitoUser = userPool.getCurrentUser();
 console.log(cognitoUser);
 
