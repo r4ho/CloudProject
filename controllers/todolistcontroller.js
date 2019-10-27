@@ -75,38 +75,6 @@ connection.connect(function(err) {
   console.log('Connected to database.');
 })*/
 
-exports.getImageDB = function(req, res)  {
-  if(isDev) {
-      AWS.config.update(config.aws_local_config);
-    } else {
-      AWS.config.update(config.aws_remote_config);
-    }
-    const image = req.body.name;
-    const docClient = new AWS.DynamoDB.DocumentClient();
-    const params = {
-      TableName: config.aws_table_name,
-      KeyConditionExpression: 'filename = :i',
-      ExpressionAttributeValues: {
-        ':i': image
-      }
-    };
-    docClient.query(params, function(err, data) {
-      if (err) {
-        res.send({
-          success: false,
-          message: 'Error: Server error'
-        });
-      } else {
-        console.log('data', data);
-        const { Items } = data;
-        res.send({
-          success: true,
-          message: 'Loaded Image',
-          images: Items
-        });
-      }
-    });
-  };
 
 exports.checkuser = function(req, res) {
     var data = { UserPoolId : 'us-west-2_jZ4pJevzH',
@@ -164,7 +132,7 @@ exports.login = function (body, callback) {
           var accesstoken = result.getAccessToken().getJwtToken();
           logged_in = accesstoken;
           log_user_name = result['idToken']['payload']['name']
-          callback.send("WELCOME USER : " + result['idToken']['payload']['name']);
+          callback.render('loggedin', {"name": result['idToken']['payload']['name']});
        },
        onFailure: (function (err) {
          logged_in = ""
@@ -176,37 +144,26 @@ exports.login = function (body, callback) {
 
 exports.addImage = function(req, res) {
     res.json(req.file);
-    if (isDev) {
-      AWS.config.update(config.aws_local_config);
-    } else {
-      AWS.config.update(config.aws_remote_config);
+    /*let awsConfig = {
+      "region": "us-west-2",
+      "endpoint": "http://dynamodb.us-west-2.amazonaws.com",
+      "accessKeyId": 'AKIA6G5SFHWXNGMW4APM',
+      "secretAccessKey": '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'
     }
-    const filename = req.file.originalname;
-    const docClient = new AWS.DynamoDB.DocumentClient();
-    const params = {
-      TableName: config.aws_table_name,
-      Item: {
-        filename: filename,
-        name: log_user_name,
-        time: Date.now().toString()
-      }
-    };
+    aws.config.update(awsConfig);
+    let docClient = new aws.DynamoDB.DocumentClient();
+    let save = function() {
+      var input = {"filename": req.file.originalname, "user": log_user_name, "time": Date.now().toString()}
+    var params = {TableName: "Image", Item: input} 
     docClient.put(params, function(err, data) {
-      if (err) {
-        res.send({
-          success: false,
-          message: 'Error: Server error'
-        });
-      } else {
-        console.log('data', data);
-        const { Items } = data;
-        res.send({
-          success: true,
-          message: 'Image Added',
-          file: filename
-        });
+      if(err) {
+        res.send(err)
       }
-    });
+      else {
+        res.send(data)
+      }
+    });  
+    }*/
 };
 
 exports.updateImage = function(req, res) {
@@ -215,32 +172,52 @@ exports.updateImage = function(req, res) {
   var deletes = s3bucket.deleteObject({Bucket:'raymondho.net', Key: key}, function(err, data) {
     if(err) console.log(err)
   });
-  res.json(req.file);
+  res.render('done');
+}
+
+exports.logout = function(req, res) {
+  logged_in = ""
+  res.render("notlogin");
 }
 
 exports.showhome = async function(req,res) {
   if(logged_in == "")  {
-    res.send("NOT LOGGED IN");
+    res.render("notlogin");
     return;
   }
   aws.config.setPromisesDependency();
    const image = await s3bucket.listObjectsV2({Bucket:'raymondho.net'}).promise();
    var array = [];
+   var key = []
   for(var a = 0; a < image['Contents'].length; a++) {
+    console.log(image['Contents'][a]);
     array.push("http://d2tmb4hokmhume.cloudfront.net/"+image['Contents'][a]['Key']);
+    key.push(image['Contents'][a]['Key']);
   }
-    res.render('index',{data: array, user: log_user_name});
+    res.render('index',{data: array, key: key,  user: log_user_name});
 }
 
 exports.showcreate = function(req,res) {
+  if(logged_in == "")  {
+    res.render("notlogin");
+    return;
+  }
   res.render('createimage');
 }
 
 exports.showdelete = function(req, res) {
+  if(logged_in == "")  {
+    res.render("notlogin");
+    return;
+  }
   res.render('deleteimage');
 }
 
 exports.showupdate = function(req, res) {
+  if(logged_in == "")  {
+    res.render("notlogin");
+    return;
+  }
   res.render('updateimage')
 }
 

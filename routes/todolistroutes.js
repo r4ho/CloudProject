@@ -45,6 +45,8 @@ var upload = multer({
   .get(todoList.showregister);
   app.route("/showlogin")
   .get(todoList.showlogin);
+  app.route("/logout")
+  .post(todoList.logout);
 
 
   app.route("/register")
