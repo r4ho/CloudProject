@@ -111,7 +111,7 @@ exports.register = function (req, res) {
     if (err)
         res.json(err);
     var cognitoUser = result.user;
-    res.json(cognitoUser);
+    res.send("Registered User: " + name );
   })
 }
 
@@ -143,7 +143,7 @@ exports.login = function (body, callback) {
 
 
 exports.addImage = function(req, res) {
-    res.json(req.file);
+    res.json(req.file.originalname + " Added");
     /*let awsConfig = {
       "region": "us-west-2",
       "endpoint": "http://dynamodb.us-west-2.amazonaws.com",
@@ -190,7 +190,6 @@ exports.showhome = async function(req,res) {
    var array = [];
    var key = []
   for(var a = 0; a < image['Contents'].length; a++) {
-    console.log(image['Contents'][a]);
     array.push("http://d2tmb4hokmhume.cloudfront.net/"+image['Contents'][a]['Key']);
     key.push(image['Contents'][a]['Key']);
   }
@@ -242,22 +241,13 @@ exports.startupdate = function(req, res) {
   res.render('updateimage', req.params);
 }
 
-exports.getImages = async function(req, res) {
-  aws.config.setPromisesDependency();
-   const image = await s3bucket.listObjectsV2({Bucket:'raymondho.net'}).promise();
-   var array = [];
-  for(var a = 0; a < image['Contents'].length; a++) {
-    array.push("https://s3-us-west-1.amazonaws.com/raymondho.net/"+image['Contents'][a]['Key']);
-  }
-   res.json(array);
-};
 
 exports.deleteImage = function(req, res) {
 var key = req.body.deleteid;
 console.log(key);
 var deletes = s3bucket.deleteObject({Bucket:'raymondho.net', Key: key}, function(err, data) {
   if(err) console.log(err)
-  res.json("Deleted");
+  res.send("Deleted " + key);
 });
 
 };
