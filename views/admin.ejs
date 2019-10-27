@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Admin View</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+      <h1>ADMIN VIEW</h1>
+      <form method="post" action="/logout">
+        <input style="float:right" type="submit" value="Log Out">
+      </form>
+      <% for(var i = 0; i < data.length; i++) {%>
+      <img src=<%=data[i]%>>
+      <form method="post" action="/deleteadmin">
+        <input type="text" name="deleteid" value=<%=key[i]%> >
+        <input type="submit" value="Delete">
+      </form>
+      <hr>
+      <% } %>
+  </body>
+</html>

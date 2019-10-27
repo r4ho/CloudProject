@@ -6,6 +6,7 @@
 var multiparty = require('multiparty');
 global.logged_in = "";
 global.log_user_name = "";
+global.admin = ""
 
 var aws = require('aws-sdk');
 var config = require('../config/config.js');
@@ -104,6 +105,11 @@ exports.register = function (req, res) {
   var email = req.body.email;
   var password = req.body.password;
   var attributeList = [];
+
+  if(name == 'Admin Admin') {
+    res.send('Cannot have this name');
+    return;
+  }
   
   attributeList.push(new AmazonCognitoIdentity.CognitoUserAttribute({ Name: "email", Value: email }));
   attributeList.push(new AmazonCognitoIdentity.CognitoUserAttribute({Name:"name",Value:name}));
@@ -132,6 +138,7 @@ exports.login = function (body, callback) {
           var accesstoken = result.getAccessToken().getJwtToken();
           logged_in = accesstoken;
           log_user_name = result['idToken']['payload']['name']
+          if(log_user_name == 'Admin Admin') admin = true; 
           callback.render('loggedin', {"name": result['idToken']['payload']['name']});
        },
        onFailure: (function (err) {
@@ -177,6 +184,8 @@ exports.updateImage = function(req, res) {
 
 exports.logout = function(req, res) {
   logged_in = ""
+  log_user_name = ""
+  admin = ""
   res.render("notlogin");
 }
 
@@ -194,7 +203,33 @@ exports.showhome = async function(req,res) {
     array.push("http://d2tmb4hokmhume.cloudfront.net/"+image['Contents'][a]['Key']);
     key.push(image['Contents'][a]['Key']);
   }
+    if(admin) res.render('admin',{data: array, key: key});
     res.render('index',{data: array, key: key,  user: log_user_name});
+}
+
+exports.showadmin = async function(req,res) {
+  if(!admin) {
+    res.send('NOT AN ADMIN');
+    return;
+  }
+  aws.config.setPromisesDependency();
+   const image = await s3bucket.listObjectsV2({Bucket:'raymondho.net'}).promise();
+   var array = [];
+   var key = []
+  for(var a = 0; a < image['Contents'].length; a++) {
+    console.log(image['Contents'][a]);
+    array.push("http://d2tmb4hokmhume.cloudfront.net/"+image['Contents'][a]['Key']);
+    key.push(image['Contents'][a]['Key']);
+  }
+    res.render('admin',{data: array, key: key});
+} 
+
+exports.deleteadmin = function(req, res) {
+  var key = req.body.deleteid;
+  var deletes = s3bucket.deleteObject({Bucket:'raymondho.net', Key: key}, function(err, data) {
+    if(err) console.log(err)
+    res.render("deleteadmin");
+  });
 }
 
 exports.showcreate = function(req,res) {
