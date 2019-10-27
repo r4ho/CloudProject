@@ -176,6 +176,37 @@ exports.login = function (body, callback) {
 
 exports.addImage = function(req, res) {
     res.json(req.file);
+    if (isDev) {
+      AWS.config.update(config.aws_local_config);
+    } else {
+      AWS.config.update(config.aws_remote_config);
+    }
+    const filename = req.file.originalname;
+    const docClient = new AWS.DynamoDB.DocumentClient();
+    const params = {
+      TableName: config.aws_table_name,
+      Item: {
+        filename: filename,
+        name: log_user_name,
+        time: Date.now().toString()
+      }
+    };
+    docClient.put(params, function(err, data) {
+      if (err) {
+        res.send({
+          success: false,
+          message: 'Error: Server error'
+        });
+      } else {
+        console.log('data', data);
+        const { Items } = data;
+        res.send({
+          success: true,
+          message: 'Image Added',
+          file: filename
+        });
+      }
+    });
 };
 
 exports.updateImage = function(req, res) {
@@ -184,19 +215,6 @@ exports.updateImage = function(req, res) {
   var deletes = s3bucket.deleteObject({Bucket:'raymondho.net', Key: key}, function(err, data) {
     if(err) console.log(err)
   });
-  var upload = multer({
-    storage: multerS3({
-      s3: s3bucket,
-      bucket: 'raymondho.net',
-      metadata: function (req, file, cb) {
-        cb(null, {fieldName: file.fieldname});
-      },
-      key: function (req, file, cb) {
-        cb(null, key)
-      }
-    })
-  })
-  console.log(upload.single('file'))
   res.json(req.file);
 }
 

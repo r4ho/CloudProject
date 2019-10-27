@@ -21,7 +21,7 @@ var upload = multer({
       cb(null, {fieldName: file.fieldname});
     },
     key: function (req, file, cb) {
-      cb(null, Date.now().toString())
+      cb(null, Date.now().toString() + file.originalname)
     }
   })
 })
@@ -60,7 +60,7 @@ var upload = multer({
     .post(todoList.deleteImage);
   app.route('/update/:updateid')
   .get(todoList.startupdate)
-  .post(todoList.updateImage);
+  .post(upload.single('file'),todoList.updateImage);
 }
 
 
