@@ -15,8 +15,8 @@ var express = require('express')
 var multer = require('multer')
 var multerS3 = require('multer-s3')
 var s3bucket = new aws.S3({ 
-  accessKeyId: 'AKIA6G5SFHWXNGMW4APM',
-  secretAccessKey: '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',
+  accessKeyId: '',
+  secretAccessKey: '',
   Bucket: 'raymondho.net'
 })
 
@@ -28,8 +28,8 @@ const jwt = require('jsonwebtoken');
 global.fetch = require('node-fetch');
 
 
-const poolData = {  UserPoolId : "us-west-2_jZ4pJevzH",  
-    ClientId : "5p2f3mg30g2gmefmsdh9k64mrs" 
+const poolData = {  UserPoolId : "",  
+    ClientId : "" 
     }; 
     const pool_region = 'us-west-2';
 
@@ -51,10 +51,10 @@ var upload = multer({
 
 var mysql = require('mysql');
 /*var connection = mysql.createConnection({
-host: 'aas45fvulvy4im.ctk1dcrepiao.us-west-2.rds.amazonaws.com',
-user: 'admin',
-password: 'password',
-port: '3306',
+host: '',
+user: '',
+password: '',
+port: '',
 timeout: 60000
 });
 connection.connect(function(err) {
@@ -78,8 +78,8 @@ connection.connect(function(err) {
 
 
 exports.checkuser = function(req, res) {
-    var data = { UserPoolId : 'us-west-2_jZ4pJevzH',
-    ClientId : '5p2f3mg30g2gmefmsdh9k64mrs'
+    var data = { UserPoolId : '',
+    ClientId : ''
 };
 var userPool = new AmazonCognitoIdentity.CognitoUserPool(data);
 var cognitoUser = userPool.getCurrentUser();
