@@ -9,8 +9,8 @@ var express = require('express')
 var multer = require('multer')
 var multerS3 = require('multer-s3')
 var s3bucket = new aws.S3({ 
-  accessKeyId: 'AKIA6G5SFHWXNGMW4APM',
-  secretAccessKey: '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', 
+  accessKeyId: '',
+  secretAccessKey: '', 
   Bucket: 'raymondho.net'
 })
 var upload = multer({
